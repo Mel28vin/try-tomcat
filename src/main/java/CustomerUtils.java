@@ -88,29 +88,32 @@ public class CustomerUtils {
         return true;
     }
 
-    public static boolean updateCustomer(String jsonString) {
-        // TODO
+    public static boolean updateCustomer(int customer_id, String jsonString) {
         Type type = Types.newParameterizedType(Map.class, String.class, String.class);
         JsonAdapter<Map<String, String>> jsonAdapter = moshi.adapter(type);
 
         try (Connection con = DBConnectionManager.getConnection()) {
-            PreparedStatement st = con.prepareStatement("UPDATE CustomerTable SET name = ?, email = ? WHERE name = ? AND email = ?");
+            PreparedStatement st = con.prepareStatement("UPDATE CustomerTable SET name = COALESCE(?, name), email = COALESCE(?, email) WHERE customer_id = ?");
             Map<String, String> customerData = jsonAdapter.fromJson(jsonString);
-            assert customerData != null;
-            if (customerData.containsKey("name") && customerData.containsKey("email")) {
-                st.setString(1, customerData.get("name"));
-                st.setString(2, customerData.get("email"));
-                st.executeUpdate();
+
+            if (customerData != null) {
+                st.setString(1, customerData.getOrDefault("name", null));
+
+                st.setString(2, customerData.getOrDefault("email", null));
+
+                st.setInt(3, customer_id);
+
+                int rowsUpdated = st.executeUpdate();
+
+                return rowsUpdated > 0;
             } else {
-                return false;
+                return false; // Invalid or missing data in the JSON
             }
 
         } catch (SQLException | IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            return false;
+            e.printStackTrace(); // Log or handle the exception as needed
+            return false;        // Update failed
         }
-
-        return true;
     }
 
     public static boolean removeCustomer(int customer_id) {

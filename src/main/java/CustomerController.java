@@ -81,13 +81,33 @@ public class CustomerController extends HttpServlet {
             }
 
             String jsonData = jsonInput.toString();
+            String pathInfo = request.getPathInfo();
 
-//            System.out.println("Received JSON data: " + jsonData);
+            boolean isSuccess = false;
 
-            boolean isSuccess = CustomerUtils.updateCustomer(jsonData);
+            if (pathInfo == null || pathInfo.equals("/")) {
+                out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                return;
+            } else {
+                String[] pathParts = pathInfo.split("/");
+                if (pathParts.length == 2) {
+                    String idStr = pathParts[1];
+                    int customer_id = 0;
+                    try {
+                        customer_id = Integer.parseInt(idStr);
+                    } catch (NumberFormatException e) {
+                        out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                        return;
+                    }
+                    isSuccess = CustomerUtils.updateCustomer(customer_id, jsonData);
+                } else {
+                    out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                    return;
+                }
+            }
 
             if (isSuccess)
-                out.write("{ \"status\": \"success\", \"message\": \"Updated Successfully\" }");
+                out.write("{ \"status\": \"success\", \"message\": \"Customer Updated successfully\" }");
             else
                 out.write("{ \"status\": \"error\", \"message\": \"Error in DB\" }");
         } catch (Exception e) {
