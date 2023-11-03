@@ -3,9 +3,9 @@ public class Customer {
     private String name;
 
     private String email;
-    private short status;
+    private int status;
 
-    public Customer(int customer_id, String name, String email, short status) {
+    public Customer(int customer_id, String name, String email, int status) {
         this.customer_id = customer_id;
         this.name = name;
         this.email = email;
@@ -32,11 +32,11 @@ public class Customer {
         this.email = email;
     }
 
-    public short getStatus() {
+    public int getStatus() {
         return status;
     }
 
-    public void setStatus(short status) {
+    public void setStatus(int status) {
         this.status = status;
     }
 }
