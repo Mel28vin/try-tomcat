@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 public class CustomerUtils {
+    static Moshi moshi = new Moshi.Builder().build();
     public static String getAllCustomers() {
         List<Customer> allCustomers = new ArrayList<>();
 
@@ -30,13 +31,32 @@ public class CustomerUtils {
             return null;
         }
 
-        Moshi moshi = new Moshi.Builder().build();
         Type type = Types.
                 newParameterizedType(List.class, Customer.class);
         JsonAdapter<List<Customer>> jsonAdapter = moshi.adapter(type);
 
         return jsonAdapter.toJson(allCustomers);
+    }
 
+    public static String getCustomer(int customer_id) {
+        Customer temp = null;
+        try (Connection con = DBConnectionManager.getConnection()) {
 
+             PreparedStatement st = con.prepareStatement("Select * from CustomerTable where customer_id=?");
+             st.setInt(1, customer_id);
+             ResultSet rs = st.executeQuery();
+
+            if (rs.next()) {
+                String name = rs.getString("name");
+                String email = rs.getString("email");
+                int status = rs.getInt("status");
+                temp = new Customer(customer_id, name, email, status);
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+        JsonAdapter<Customer> jsonAdapter = moshi.adapter(Customer.class);
+        return jsonAdapter.toJson(temp);
     }
 }

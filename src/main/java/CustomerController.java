@@ -15,18 +15,22 @@ public class CustomerController extends HttpServlet {
         String pathInfo = request.getPathInfo();
 
         if (pathInfo == null || pathInfo.equals("/")) {
-            // Return all items
             out.print(CustomerUtils.getAllCustomers());
         } else {
-            out.print("Not Valid");
-//            String[] pathParts = pathInfo.split("/");
-//            if (pathParts.length == 2) {
-//                // Get the item ID
-//                String itemId = pathParts[1];
-//                getSingleItem(out, itemId);
-//            } else {
-//                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
-//            }
+            String[] pathParts = pathInfo.split("/");
+            if (pathParts.length == 2) {
+                String idStr = pathParts[1];
+                int customer_id = 0;
+                try {
+                    customer_id = Integer.parseInt(idStr);
+                } catch (NumberFormatException e) {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
+                    return;
+                }
+                out.print(CustomerUtils.getCustomer(customer_id));
+            } else {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
+            }
         }
         out.flush();
     }
