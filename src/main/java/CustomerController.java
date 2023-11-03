@@ -52,17 +52,46 @@ public class CustomerController extends HttpServlet {
 
             String jsonData = jsonInput.toString();
 
-            System.out.println("Received JSON data: " + jsonData);
+//            System.out.println("Received JSON data: " + jsonData);
 
-            boolean isSucess = CustomerUtils.addCustomer(jsonData);
+            boolean isSuccess = CustomerUtils.addCustomer(jsonData);
 
-            if (isSucess)
+            if (isSuccess)
                 out.write("{ \"status\": \"success\", \"message\": \"JSON data received successfully\" }");
             else
                 out.write("{ \"status\": \"error\", \"message\": \"Error in DB\" }");
         } catch (Exception e) {
             e.printStackTrace();
             out.write("{ \"status\": \"error\", \"message\": \"Error processing JSON data\" }");
+        }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        PrintWriter out = response.getWriter();
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream()))) {
+            StringBuilder jsonInput = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                jsonInput.append(line);
+            }
+
+            String jsonData = jsonInput.toString();
+
+//            System.out.println("Received JSON data: " + jsonData);
+
+            boolean isSuccess = CustomerUtils.removeCustomer(jsonData);
+
+            if (isSuccess)
+                out.write("{ \"status\": \"success\", \"message\": \"Customer Deleted successfully\" }");
+            else
+                out.write("{ \"status\": \"error\", \"message\": \"Error in DB\" }");
+        } catch (Exception e) {
+            e.printStackTrace();
+            out.write("{ \"status\": \"error\", \"message\": \"Error processing JSON input\" }");
         }
     }
 }

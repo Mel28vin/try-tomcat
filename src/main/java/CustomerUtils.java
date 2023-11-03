@@ -1,8 +1,8 @@
-import com.squareup.moshi.JsonAdapter;
-import com.squareup.moshi.Moshi;
-import com.squareup.moshi.Types;
+import com.squareup.moshi.*;
+import okio.BufferedSink;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -59,7 +59,7 @@ public class CustomerUtils {
             e.printStackTrace();
             return null;
         }
-        JsonAdapter<Customer> jsonAdapter = moshi.adapter(Customer.class);
+        JsonAdapter<Customer> jsonAdapter = moshi.adapter(Customer.class).indent("  ");
         return jsonAdapter.toJson(temp);
     }
 
@@ -69,6 +69,30 @@ public class CustomerUtils {
 
         try (Connection con = DBConnectionManager.getConnection()) {
             PreparedStatement st = con.prepareStatement("Insert into CustomerTable (name, email) VALUES (?, ?)");
+            Map<String, String> customerData = jsonAdapter.fromJson(jsonString);
+            assert customerData != null;
+            if (customerData.containsKey("name") && customerData.containsKey("email")) {
+                st.setString(1, customerData.get("name"));
+                st.setString(2, customerData.get("email"));
+                st.executeUpdate();
+            } else {
+                return false;
+            }
+
+        } catch (SQLException | IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
+    public static boolean removeCustomer(String jsonString) {
+        Type type = Types.newParameterizedType(Map.class, String.class, String.class);
+        JsonAdapter<Map<String, String>> jsonAdapter = moshi.adapter(type);
+
+        try (Connection con = DBConnectionManager.getConnection()) {
+            PreparedStatement st = con.prepareStatement("DELETE FROM CustomerTable WHERE name = ? AND email = ?");
             Map<String, String> customerData = jsonAdapter.fromJson(jsonString);
             assert customerData != null;
             if (customerData.containsKey("name") && customerData.containsKey("email")) {
