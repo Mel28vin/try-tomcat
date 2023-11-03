@@ -1,8 +1,8 @@
-import com.squareup.moshi.*;
-import okio.BufferedSink;
+import com.squareup.moshi.JsonAdapter;
+import com.squareup.moshi.Moshi;
+import com.squareup.moshi.Types;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,6 +14,7 @@ import java.util.Map;
 
 public class CustomerUtils {
     static Moshi moshi = new Moshi.Builder().build();
+
     public static String getAllCustomers() {
         List<Customer> allCustomers = new ArrayList<>();
 
@@ -21,7 +22,7 @@ public class CustomerUtils {
              PreparedStatement st = con.prepareStatement("Select * from CustomerTable");
              ResultSet rs = st.executeQuery()) {
 
-            while(rs.next()) {
+            while (rs.next()) {
                 int customer_id = rs.getInt("customer_id");
                 String name = rs.getString("name");
                 String email = rs.getString("email");
@@ -45,9 +46,9 @@ public class CustomerUtils {
         Customer temp = null;
         try (Connection con = DBConnectionManager.getConnection()) {
 
-             PreparedStatement st = con.prepareStatement("Select * from CustomerTable where customer_id=?");
-             st.setInt(1, customer_id);
-             ResultSet rs = st.executeQuery();
+            PreparedStatement st = con.prepareStatement("Select * from CustomerTable where customer_id=?");
+            st.setInt(1, customer_id);
+            ResultSet rs = st.executeQuery();
 
             if (rs.next()) {
                 String name = rs.getString("name");
@@ -87,12 +88,13 @@ public class CustomerUtils {
         return true;
     }
 
-    public static boolean removeCustomer(String jsonString) {
+    public static boolean updateCustomer(String jsonString) {
+        // TODO
         Type type = Types.newParameterizedType(Map.class, String.class, String.class);
         JsonAdapter<Map<String, String>> jsonAdapter = moshi.adapter(type);
 
         try (Connection con = DBConnectionManager.getConnection()) {
-            PreparedStatement st = con.prepareStatement("DELETE FROM CustomerTable WHERE name = ? AND email = ?");
+            PreparedStatement st = con.prepareStatement("UPDATE CustomerTable SET name = ?, email = ? WHERE name = ? AND email = ?");
             Map<String, String> customerData = jsonAdapter.fromJson(jsonString);
             assert customerData != null;
             if (customerData.containsKey("name") && customerData.containsKey("email")) {
@@ -104,6 +106,20 @@ public class CustomerUtils {
             }
 
         } catch (SQLException | IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
+    public static boolean removeCustomer(int customer_id) {
+
+        try (Connection con = DBConnectionManager.getConnection()) {
+            PreparedStatement st = con.prepareStatement("DELETE FROM CustomerTable WHERE customer_id=?");
+            st.setInt(1, customer_id);
+            st.executeUpdate();
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
             return false;
         }

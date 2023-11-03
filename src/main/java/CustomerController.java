@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+
 @WebServlet("/api/v1/customers/*")
 public class CustomerController extends HttpServlet {
     @Override
@@ -67,7 +68,7 @@ public class CustomerController extends HttpServlet {
     }
 
     @Override
-    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         PrintWriter out = response.getWriter();
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
@@ -83,15 +84,52 @@ public class CustomerController extends HttpServlet {
 
 //            System.out.println("Received JSON data: " + jsonData);
 
-            boolean isSuccess = CustomerUtils.removeCustomer(jsonData);
+            boolean isSuccess = CustomerUtils.updateCustomer(jsonData);
 
             if (isSuccess)
-                out.write("{ \"status\": \"success\", \"message\": \"Customer Deleted successfully\" }");
+                out.write("{ \"status\": \"success\", \"message\": \"Updated Successfully\" }");
             else
                 out.write("{ \"status\": \"error\", \"message\": \"Error in DB\" }");
         } catch (Exception e) {
             e.printStackTrace();
-            out.write("{ \"status\": \"error\", \"message\": \"Error processing JSON input\" }");
+            out.write("{ \"status\": \"error\", \"message\": \"Error processing JSON data\" }");
         }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        PrintWriter out = response.getWriter();
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        String pathInfo = request.getPathInfo();
+
+        boolean isSuccess = false;
+
+        if (pathInfo == null || pathInfo.equals("/")) {
+            out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+            return;
+        } else {
+            String[] pathParts = pathInfo.split("/");
+            if (pathParts.length == 2) {
+                String idStr = pathParts[1];
+                int customer_id = 0;
+                try {
+                    customer_id = Integer.parseInt(idStr);
+                } catch (NumberFormatException e) {
+                    out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                    return;
+                }
+                isSuccess = CustomerUtils.removeCustomer(customer_id);
+            } else {
+                out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                return;
+            }
+        }
+
+        if (isSuccess)
+            out.write("{ \"status\": \"success\", \"message\": \"Customer Deleted successfully\" }");
+        else
+            out.write("{ \"status\": \"error\", \"message\": \"Error in DB\" }");
     }
 }
