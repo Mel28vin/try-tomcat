@@ -93,6 +93,18 @@ public class ItemUtils {
         return true;
     }
 
+    public static boolean setStatus(long itemId, int status) {
+        try (Connection con = DBConnectionManager.getConnection();
+             PreparedStatement st = con.prepareStatement("Update ItemTable Set status = ? where item_id = ?")) {
+            st.setInt(1, status);
+            st.setLong(2, itemId);
+            int rowsAffected = st.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException | ClassNotFoundException e) {
+            return false;
+        }
+    }
+
     public static boolean updateItem(long itemId, String jsonString) {
         Type type = Types.newParameterizedType(Map.class, String.class, String.class);
         JsonAdapter<Map<String, String>> jsonAdapter = moshi.adapter(type);

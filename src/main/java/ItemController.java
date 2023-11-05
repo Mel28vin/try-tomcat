@@ -52,10 +52,33 @@ public class ItemController extends HttpServlet {
             }
 
             String jsonData = jsonInput.toString();
+            boolean isSuccess = false;
 
-//            System.out.println("Received JSON data: " + jsonData);
+            String pathInfo = request.getPathInfo();
+            if (pathInfo == null || pathInfo.equals("/")) {
+                isSuccess = ItemUtils.addItem(jsonData);
+            } else {
+                String[] pathParts = pathInfo.split("/");
+                boolean markAsActive = pathParts[2].equals("markasactive");
+                boolean markAsInActive = pathParts[2].equals("markasinactive");
+                if (pathParts.length == 3 && (
+                        markAsActive ||
+                                markAsInActive)
+                ) {
+                    String idStr = pathParts[1];
+                    long itemId = 0;
+                    try {
+                        itemId = Long.parseLong(idStr);
+                    } catch (NumberFormatException e) {
+                        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
+                        return;
+                    }
+                    isSuccess = ItemUtils.setStatus(itemId, markAsActive ? 1 : 0);
+                } else {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
+                }
+            }
 
-            boolean isSuccess = ItemUtils.addItem(jsonData);
 
             if (isSuccess)
                 out.write("{ \"status\": \"success\", \"message\": \"JSON data received successfully\" }");
@@ -65,6 +88,7 @@ public class ItemController extends HttpServlet {
             e.printStackTrace();
             out.write("{ \"status\": \"error\", \"message\": \"Error processing JSON data\" }");
         }
+        out.flush();
     }
 
     @Override
