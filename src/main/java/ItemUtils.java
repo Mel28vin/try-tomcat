@@ -27,7 +27,7 @@ public class ItemUtils {
                 String name = rs.getString("name");
                 String email = rs.getString("email");
                 int status = rs.getInt("status");
-                Customer temp = new Customer(customer_id, name, email, status);
+                Customer temp = new Customer(customer_id, name, email, status, null);
                 allCustomers.add(temp);
             }
         } catch (SQLException | ClassNotFoundException e) {
@@ -54,7 +54,7 @@ public class ItemUtils {
                 String name = rs.getString("name");
                 String email = rs.getString("email");
                 int status = rs.getInt("status");
-                temp = new Customer(customer_id, name, email, status);
+                temp = new Customer(customer_id, name, email, status, null);
             }
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();

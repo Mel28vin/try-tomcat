@@ -23,11 +23,26 @@ public class CustomerUtils {
              ResultSet rs = st.executeQuery()) {
 
             while (rs.next()) {
-                long customerId = rs.getInt("customer_id");
+                long customerId = rs.getLong("customer_id");
                 String name = rs.getString("name");
                 String email = rs.getString("email");
                 int status = rs.getInt("status");
-                Customer temp = new Customer(customerId, name, email, status);
+                List<CustomerContactPerson> contactPeople = new ArrayList<>();
+
+                PreparedStatement ps = con.prepareStatement("Select contact_person_id, name, email from CustomerContactPersonTable where customer_id=?");
+                ps.setLong(1, customerId);
+                ResultSet subRs = ps.executeQuery();
+
+                while (subRs.next()) {
+                    CustomerContactPerson temp = new CustomerContactPerson(
+                            subRs.getLong("contact_person_id"),
+                            subRs.getString("name"),
+                            subRs.getString("email")
+                    );
+                    contactPeople.add(temp);
+                }
+
+                Customer temp = new Customer(customerId, name, email, status, contactPeople);
                 allCustomers.add(temp);
             }
         } catch (SQLException | ClassNotFoundException e) {
@@ -54,7 +69,22 @@ public class CustomerUtils {
                 String name = rs.getString("name");
                 String email = rs.getString("email");
                 int status = rs.getInt("status");
-                temp = new Customer(customerId, name, email, status);
+                List<CustomerContactPerson> contactPeople = new ArrayList<>();
+
+                PreparedStatement ps = con.prepareStatement("Select contact_person_id, name, email from CustomerContactPersonTable where customer_id=?");
+                ps.setLong(1, customerId);
+                ResultSet subRs = ps.executeQuery();
+
+                while (subRs.next()) {
+                    CustomerContactPerson contactPerson = new CustomerContactPerson(
+                            subRs.getLong("contact_person_id"),
+                            subRs.getString("name"),
+                            subRs.getString("email")
+                    );
+                    contactPeople.add(contactPerson);
+                }
+
+                temp = new Customer(customerId, name, email, status, contactPeople);
             }
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -62,6 +92,33 @@ public class CustomerUtils {
         }
         JsonAdapter<Customer> jsonAdapter = moshi.adapter(Customer.class).indent("  ");
         return jsonAdapter.toJson(temp);
+    }
+
+    public static String getCustomerContactPeople(long customerId) {
+        List<CustomerContactPerson> contactPeople = new ArrayList<>();
+        try (Connection con = DBConnectionManager.getConnection()) {
+
+            PreparedStatement ps = con.prepareStatement("Select contact_person_id, name, email from CustomerContactPersonTable where customer_id=?");
+            ps.setLong(1, customerId);
+            ResultSet subRs = ps.executeQuery();
+
+            while (subRs.next()) {
+                CustomerContactPerson contactPerson = new CustomerContactPerson(
+                        subRs.getLong("contact_person_id"),
+                        subRs.getString("name"),
+                        subRs.getString("email")
+                );
+                contactPeople.add(contactPerson);
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        Type type = Types.newParameterizedType(List.class, CustomerContactPerson.class);
+        JsonAdapter<List<CustomerContactPerson>> jsonAdapter = moshi.adapter(type);
+        return jsonAdapter.toJson(contactPeople);
+
     }
 
     public static boolean addCustomer(String jsonString) {
@@ -88,7 +145,7 @@ public class CustomerUtils {
         return true;
     }
 
-    public static boolean updateCustomer(int customerId, String jsonString) {
+    public static boolean updateCustomer(long customerId, String jsonString) {
         Type type = Types.newParameterizedType(Map.class, String.class, String.class);
         JsonAdapter<Map<String, String>> jsonAdapter = moshi.adapter(type);
 
@@ -116,7 +173,7 @@ public class CustomerUtils {
         }
     }
 
-    public static boolean removeCustomer(int customerId) {
+    public static boolean removeCustomer(long customerId) {
 
         try (Connection con = DBConnectionManager.getConnection()) {
             PreparedStatement st = con.prepareStatement("DELETE FROM CustomerTable WHERE customer_id=?");
