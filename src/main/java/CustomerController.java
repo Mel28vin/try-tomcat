@@ -23,24 +23,24 @@ public class CustomerController extends HttpServlet {
             String[] pathParts = pathInfo.split("/");
             if (pathParts.length == 2) {
                 String idStr = pathParts[1];
-                long customer_id = 0;
+                long customerId = 0;
                 try {
-                    customer_id = Long.parseLong(idStr);
+                    customerId = Long.parseLong(idStr);
                 } catch (NumberFormatException e) {
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
                     return;
                 }
-                out.print(CustomerUtils.getCustomer(customer_id));
+                out.print(CustomerUtils.getCustomer(customerId));
             } else if (pathParts.length == 3 && pathParts[2].equals("contact-people")) {
                 String idStr = pathParts[1];
-                long customer_id = 0;
+                long customerId = 0;
                 try {
-                    customer_id = Long.parseLong(idStr);
+                    customerId = Long.parseLong(idStr);
                 } catch (NumberFormatException e) {
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
                     return;
                 }
-                out.print(CustomerUtils.getCustomerContactPeople(customer_id));
+                out.print(CustomerUtils.getCustomerContactPeople(customerId));
 
             } else {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
@@ -103,14 +103,14 @@ public class CustomerController extends HttpServlet {
                 String[] pathParts = pathInfo.split("/");
                 if (pathParts.length == 2) {
                     String idStr = pathParts[1];
-                    int customer_id = 0;
+                    long customerId = 0;
                     try {
-                        customer_id = Integer.parseInt(idStr);
+                        customerId = Long.parseLong(idStr);
                     } catch (NumberFormatException e) {
                         out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
                         return;
                     }
-                    isSuccess = CustomerUtils.updateCustomer(customer_id, jsonData);
+                    isSuccess = CustomerUtils.updateCustomer(customerId, jsonData);
                 } else {
                     out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
                     return;
@@ -144,14 +144,14 @@ public class CustomerController extends HttpServlet {
             String[] pathParts = pathInfo.split("/");
             if (pathParts.length == 2) {
                 String idStr = pathParts[1];
-                int customer_id = 0;
+                int customerId = 0;
                 try {
-                    customer_id = Integer.parseInt(idStr);
+                    customerId = Integer.parseInt(idStr);
                 } catch (NumberFormatException e) {
                     out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
                     return;
                 }
-                isSuccess = CustomerUtils.removeCustomer(customer_id);
+                isSuccess = CustomerUtils.removeCustomer(customerId);
             } else {
                 out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
                 return;
