@@ -41,7 +41,19 @@ public class CustomerController extends HttpServlet {
                     return;
                 }
                 out.print(CustomerUtils.getCustomerContactPeople(customerId));
-
+            } else if (pathParts.length == 4 && pathParts[2].equals("contact-people")) {
+                String idStr = pathParts[1];
+                String contactIdStr = pathParts[3];
+                long customerId = 0;
+                long contactPersonId = 0;
+                try {
+                    customerId = Long.parseLong(idStr);
+                    contactPersonId = Long.parseLong(contactIdStr);
+                } catch (NumberFormatException e) {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
+                    return;
+                }
+                out.print(CustomerUtils.getContactPerson(customerId, contactPersonId));
             } else {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
             }

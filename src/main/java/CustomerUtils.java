@@ -93,6 +93,24 @@ public class CustomerUtils {
         return jsonAdapter.toJson(temp);
     }
 
+    public static String getContactPerson(long customerId, long contactPersonId) {
+        CustomerContactPerson temp = null;
+        try (Connection con = DBConnectionManager.getConnection();
+             PreparedStatement st = con.prepareStatement("Select name, email from CustomerContactPersonTable Where customer_id = ? and contact_person_id = ?")) {
+            st.setLong(1, customerId);
+            st.setLong(2, contactPersonId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                temp = new CustomerContactPerson(contactPersonId, rs.getString("name"), rs.getString("email"));
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+        JsonAdapter<CustomerContactPerson> jsonAdapter = moshi.adapter(CustomerContactPerson.class).indent("  ");
+        return jsonAdapter.toJson(temp);
+    }
+
     public static String getCustomerContactPeople(long customerId) {
         List<CustomerContactPerson> contactPeople = new ArrayList<>();
         try (Connection con = DBConnectionManager.getConnection()) {
