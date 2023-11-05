@@ -52,33 +52,8 @@ public class ItemController extends HttpServlet {
             }
 
             String jsonData = jsonInput.toString();
-            boolean isSuccess = false;
 
-            String pathInfo = request.getPathInfo();
-            if (pathInfo == null || pathInfo.equals("/")) {
-                isSuccess = ItemUtils.addItem(jsonData);
-            } else {
-                String[] pathParts = pathInfo.split("/");
-                boolean markAsActive = pathParts[2].equals("markasactive");
-                boolean markAsInActive = pathParts[2].equals("markasinactive");
-                if (pathParts.length == 3 && (
-                        markAsActive ||
-                                markAsInActive)
-                ) {
-                    String idStr = pathParts[1];
-                    long itemId = 0;
-                    try {
-                        itemId = Long.parseLong(idStr);
-                    } catch (NumberFormatException e) {
-                        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
-                        return;
-                    }
-                    isSuccess = ItemUtils.setStatus(itemId, markAsActive ? 1 : 0);
-                } else {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
-                }
-            }
-
+            boolean isSuccess = ItemUtils.addItem(jsonData);
 
             if (isSuccess)
                 out.write("{ \"status\": \"success\", \"message\": \"JSON data received successfully\" }");
@@ -114,22 +89,23 @@ public class ItemController extends HttpServlet {
                 return;
             } else {
                 String[] pathParts = pathInfo.split("/");
-                if (pathParts.length == 2) {
-                    String idStr = pathParts[1];
-                    long itemId = 0;
-                    try {
-                        itemId = Long.parseLong(idStr);
-                    } catch (NumberFormatException e) {
-                        out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
-                        return;
-                    }
-                    isSuccess = ItemUtils.updateItem(itemId, jsonData);
-                } else {
+                String idStr = pathParts[1];
+                long itemId = 0;
+                try {
+                    itemId = Long.parseLong(idStr);
+                } catch (NumberFormatException e) {
                     out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
                     return;
                 }
-            }
+                if (pathParts.length == 2) {
+                    isSuccess = ItemUtils.updateItem(itemId, jsonData);
+                } else if (pathParts.length == 3 && pathParts[2].equals("status")) {
+                    isSuccess = ItemUtils.setStatus(itemId, 1);
+                } else {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
+                }
 
+            }
             if (isSuccess)
                 out.write("{ \"status\": \"success\", \"message\": \"Item Updated successfully\" }");
             else
@@ -155,25 +131,27 @@ public class ItemController extends HttpServlet {
             return;
         } else {
             String[] pathParts = pathInfo.split("/");
+            String idStr = pathParts[1];
+            long itemId = 0;
+            try {
+                itemId = Long.parseLong(idStr);
+            } catch (NumberFormatException e) {
+                out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                return;
+            }
             if (pathParts.length == 2) {
-                String idStr = pathParts[1];
-                long itemId = 0;
-                try {
-                    itemId = Long.parseLong(idStr);
-                } catch (NumberFormatException e) {
-                    out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
-                    return;
-                }
                 isSuccess = ItemUtils.removeItem(itemId);
+                out.write("{ \"status\": \"success\", \"message\": \"Item Deleted successfully\" }");
+            } else if (pathParts.length == 3 && pathParts[2].equals("status")) {
+                isSuccess = ItemUtils.setStatus(itemId, 0);
+                out.write("{ \"status\": \"success\", \"message\": \"Status updated successfully\" }");
             } else {
                 out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
                 return;
             }
         }
 
-        if (isSuccess)
-            out.write("{ \"status\": \"success\", \"message\": \"Item Deleted successfully\" }");
-        else
+        if (!isSuccess)
             out.write("{ \"status\": \"error\", \"message\": \"Error in DB\" }");
     }
 }
