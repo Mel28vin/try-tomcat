@@ -80,11 +80,32 @@ public class CustomerController extends HttpServlet {
 
             String jsonData = jsonInput.toString();
 
-            boolean isSuccess = CustomerUtils.addCustomer(jsonData);
+            boolean isSuccess = false;
+            String pathInfo = request.getPathInfo();
+            if (pathInfo == null || pathInfo.equals("/")) {
+                isSuccess = CustomerUtils.addCustomer(jsonData);
+                out.write("{ \"code\": \"success\", \"message\": \"Customer Added successfully\" }");
+            } else {
+                String[] pathParts = pathInfo.split("/");
+                String idStr = pathParts[1];
+                long customerId = 0;
+                try {
+                    customerId = Long.parseLong(idStr);
+                } catch (NumberFormatException e) {
+                    out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
+                    return;
+                }
+                if (pathParts.length == 3 && pathParts[2].equals("contact-people")) {
+                    if (isSuccess)
+                        isSuccess = CustomerUtils.addContactPerson(customerId, jsonData);
+                    out.write("{ \"code\": \"success\", \"message\": \"Customer Contact Person Added successfully\" }");
+                } else {
+                    out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
+                    return;
+                }
+            }
 
-            if (isSuccess)
-                out.write("{ \"code\": \"success\", \"message\": \"Customer data added successfully\" }");
-            else
+            if (!isSuccess)
                 out.write("{ \"code\": \"error\", \"message\": \"Internal Error\" }");
         } catch (Exception e) {
             e.printStackTrace();
@@ -125,10 +146,12 @@ public class CustomerController extends HttpServlet {
                 }
                 if (pathParts.length == 2) {
                     isSuccess = CustomerUtils.updateCustomer(customerId, jsonData);
-                    out.write("{ \"code\": \"success\", \"message\": \"Customer Updated successfully\" }");
-                } else if (pathParts.length == 3 && pathParts[2].equals("code")) {
+                    if (isSuccess)
+                        out.write("{ \"code\": \"success\", \"message\": \"Customer Updated successfully\" }");
+                } else if (pathParts.length == 3 && pathParts[2].equals("status")) {
                     isSuccess = CustomerUtils.setStatus(customerId, 1);
-                    out.write("{ \"code\": \"success\", \"message\": \"Customer status set to Active successfully\" }");
+                    if (isSuccess)
+                        out.write("{ \"code\": \"success\", \"message\": \"Customer status set to Active successfully\" }");
                 } else {
                     out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                     return;
@@ -136,7 +159,7 @@ public class CustomerController extends HttpServlet {
             }
 
             if (!isSuccess)
-                out.write("{ \"code\": \"error\", \"message\": \"Error in DB\" }");
+                out.write("{ \"code\": \"error\", \"message\": \"Internal Error\" }");
         } catch (Exception e) {
             e.printStackTrace();
             out.write("{ \"code\": \"error\", \"message\": \"Error processing JSON body\" }");
@@ -159,19 +182,33 @@ public class CustomerController extends HttpServlet {
         } else {
             String[] pathParts = pathInfo.split("/");
             String idStr = pathParts[1];
-            int customerId = 0;
+            long customerId = 0;
             try {
-                customerId = Integer.parseInt(idStr);
+                customerId = Long.parseLong(idStr);
             } catch (NumberFormatException e) {
                 out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                 return;
             }
             if (pathParts.length == 2) {
                 isSuccess = CustomerUtils.removeCustomer(customerId);
-                out.write("{ \"code\": \"success\", \"message\": \"Customer Deleted successfully\" }");
-            } else if (pathParts.length == 3 && pathParts[2].equals("code")) {
+                if (isSuccess)
+                    out.write("{ \"code\": \"success\", \"message\": \"Customer Deleted successfully\" }");
+            } else if (pathParts.length == 3 && pathParts[2].equals("status")) {
                 isSuccess = CustomerUtils.setStatus(customerId, 0);
-                out.write("{ \"code\": \"success\", \"message\": \"Customer status set to Inactive successfully\" }");
+                if (isSuccess)
+                    out.write("{ \"code\": \"success\", \"message\": \"Customer status set to Inactive successfully\" }");
+            } else if (pathParts.length == 4 && pathParts[2].equals("contact-people")) {
+                String contactIdStr = pathParts[3];
+                long contactPersonId = 0;
+                try {
+                    contactPersonId = Long.parseLong(contactIdStr);
+                } catch (NumberFormatException e) {
+                    out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
+                    return;
+                }
+                isSuccess = CustomerUtils.removeContactPerson(customerId, contactPersonId);
+                if (isSuccess)
+                    out.write("{ \"code\": \"success\", \"message\": \"Customer Contact Person Deleted successfully\" }");
             } else {
                 out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                 return;

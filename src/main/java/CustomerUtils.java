@@ -176,6 +176,28 @@ public class CustomerUtils {
         return true;
     }
 
+    public static boolean addContactPerson(long customerId, String jsonString) {
+        JsonAdapter<CustomerContactPerson> jsonAdapter = moshi.adapter(CustomerContactPerson.class).indent("  ");
+
+        try (Connection con = DBConnectionManager.getConnection()) {
+            PreparedStatement st = con.prepareStatement("Insert into CustomerContactPersonTable (customer_id, name, email) values (?, ?, ?)");
+            CustomerContactPerson temp = jsonAdapter.fromJson(jsonString);
+
+            assert temp != null;
+            st.setLong(1, customerId);
+            st.setString(2, temp.getName());
+            st.setString(3, temp.getEmail());
+
+            st.executeUpdate();
+
+            return true;
+        } catch (SQLException | ClassNotFoundException | IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+
+    }
+
     public static boolean updateCustomer(long customerId, String jsonString) {
         JsonAdapter<Customer> jsonAdapter = moshi.adapter(Customer.class).indent("  ");
 
@@ -222,6 +244,20 @@ public class CustomerUtils {
         try (Connection con = DBConnectionManager.getConnection()) {
             PreparedStatement st = con.prepareStatement("DELETE FROM CustomerTable WHERE customer_id=?");
             st.setLong(1, customerId);
+            st.executeUpdate();
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
+    public static boolean removeContactPerson(long customerId, long contactPersonId) {
+        try (Connection con = DBConnectionManager.getConnection()) {
+            PreparedStatement st = con.prepareStatement("DELETE FROM CustomerContactPersonTable WHERE customer_id=? and contact_person_id=?");
+            st.setLong(1, customerId);
+            st.setLong(2, contactPersonId);
             st.executeUpdate();
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
