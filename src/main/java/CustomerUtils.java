@@ -10,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class CustomerUtils {
     static Moshi moshi = new Moshi.Builder().build();
@@ -160,35 +159,36 @@ public class CustomerUtils {
     }
 
     public static boolean updateCustomer(long customerId, String jsonString) {
-        Type type = Types.newParameterizedType(Map.class, String.class, String.class);
-        JsonAdapter<Map<String, String>> jsonAdapter = moshi.adapter(type);
+        JsonAdapter<Customer> jsonAdapter = moshi.adapter(Customer.class).indent("  ");
 
         try (Connection con = DBConnectionManager.getConnection()) {
             PreparedStatement st = con.prepareStatement("UPDATE CustomerTable SET name = COALESCE(?, name), email = COALESCE(?, email) WHERE customer_id = ?");
-            Map<String, String> customerData = jsonAdapter.fromJson(jsonString);
+            Customer currCustomer = jsonAdapter.fromJson(jsonString);
+            assert currCustomer != null;
+            st.setString(1, currCustomer.getName());
+            st.setString(2, currCustomer.getEmail());
+            st.setLong(3, customerId);
+            st.executeUpdate();
 
-            if (customerData != null) {
-                st.setString(1, customerData.getOrDefault("name", null));
-
-                st.setString(2, customerData.getOrDefault("email", null));
-
+            st = con.prepareStatement("UPDATE CustomerContactPersonTable SET name = COALESCE(?, name), email = COALESCE(?, email) WHERE customer_id = ? AND contact_person_id = ?");
+            List<CustomerContactPerson> arr = currCustomer.getContactPeople();
+            for (CustomerContactPerson contactPerson : arr) {
+                st.setString(1, contactPerson.getName());
+                st.setString(2, contactPerson.getEmail());
                 st.setLong(3, customerId);
-
-                int rowsUpdated = st.executeUpdate();
-
-                return rowsUpdated > 0;
-            } else {
-                return false; // Invalid or missing data in the JSON
+                st.setLong(4, contactPerson.getContactPersonId());
+                st.executeUpdate();
             }
 
-        } catch (SQLException | IOException | ClassNotFoundException e) {
-            e.printStackTrace(); // Log or handle the exception as needed
-            return false;        // Update failed
+        } catch (SQLException | IOException | ClassNotFoundException | ClassCastException e) {
+            e.printStackTrace();
+            return false;
         }
+
+        return true;
     }
 
     public static boolean removeCustomer(long customerId) {
-
         try (Connection con = DBConnectionManager.getConnection()) {
             PreparedStatement st = con.prepareStatement("DELETE FROM CustomerTable WHERE customer_id=?");
             st.setLong(1, customerId);
