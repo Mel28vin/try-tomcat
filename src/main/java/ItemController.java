@@ -27,12 +27,12 @@ public class ItemController extends HttpServlet {
                 try {
                     itemId = Long.parseLong(idStr);
                 } catch (NumberFormatException e) {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
+                    out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
                     return;
                 }
                 out.print(ItemUtils.getItem(itemId));
             } else {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
+                out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
             }
         }
         out.flush();
@@ -56,12 +56,12 @@ public class ItemController extends HttpServlet {
             boolean isSuccess = ItemUtils.addItem(jsonData);
 
             if (isSuccess)
-                out.write("{ \"status\": \"success\", \"message\": \"JSON data received successfully\" }");
+                out.write("{ \"status\": \"success\", \"message\": \"Item data added successfully\" }");
             else
-                out.write("{ \"status\": \"error\", \"message\": \"Error in DB\" }");
+                out.write("{ \"status\": \"error\", \"message\": \"Internal Error\" }");
         } catch (Exception e) {
             e.printStackTrace();
-            out.write("{ \"status\": \"error\", \"message\": \"Error processing JSON data\" }");
+            out.write("{ \"status\": \"error\", \"message\": \"Error processing JSON body\" }");
         }
         out.flush();
     }
@@ -99,20 +99,20 @@ public class ItemController extends HttpServlet {
                 }
                 if (pathParts.length == 2) {
                     isSuccess = ItemUtils.updateItem(itemId, jsonData);
+                    out.write("{ \"status\": \"success\", \"message\": \"Item Updated successfully\" }");
                 } else if (pathParts.length == 3 && pathParts[2].equals("status")) {
                     isSuccess = ItemUtils.setStatus(itemId, 1);
+                    out.write("{ \"status\": \"success\", \"message\": \"Item status set to Active successfully\" }");
                 } else {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
+                    out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
                 }
 
             }
-            if (isSuccess)
-                out.write("{ \"status\": \"success\", \"message\": \"Item Updated successfully\" }");
-            else
-                out.write("{ \"status\": \"error\", \"message\": \"Error in DB\" }");
+            if (!isSuccess)
+                out.write("{ \"status\": \"error\", \"message\": \"Internal Error\" }");
         } catch (Exception e) {
             e.printStackTrace();
-            out.write("{ \"status\": \"error\", \"message\": \"Error processing JSON data\" }");
+            out.write("{ \"status\": \"error\", \"message\": \"Error processing JSON body\" }");
         }
     }
 
@@ -144,7 +144,7 @@ public class ItemController extends HttpServlet {
                 out.write("{ \"status\": \"success\", \"message\": \"Item Deleted successfully\" }");
             } else if (pathParts.length == 3 && pathParts[2].equals("status")) {
                 isSuccess = ItemUtils.setStatus(itemId, 0);
-                out.write("{ \"status\": \"success\", \"message\": \"Status updated successfully\" }");
+                out.write("{ \"status\": \"success\", \"message\": \"Item status set to Inactive successfully\" }");
             } else {
                 out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
                 return;
@@ -152,6 +152,6 @@ public class ItemController extends HttpServlet {
         }
 
         if (!isSuccess)
-            out.write("{ \"status\": \"error\", \"message\": \"Error in DB\" }");
+            out.write("{ \"status\": \"error\", \"message\": \"Internal Error\" }");
     }
 }

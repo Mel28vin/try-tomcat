@@ -206,6 +206,18 @@ public class CustomerUtils {
         return true;
     }
 
+    public static boolean setStatus(long customerId, int status) {
+        try (Connection con = DBConnectionManager.getConnection();
+             PreparedStatement st = con.prepareStatement("Update CustomerTable Set status = ? where customer_id = ?")) {
+            st.setInt(1, status);
+            st.setLong(2, customerId);
+            int rowsAffected = st.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException | ClassNotFoundException e) {
+            return false;
+        }
+    }
+
     public static boolean removeCustomer(long customerId) {
         try (Connection con = DBConnectionManager.getConnection()) {
             PreparedStatement st = con.prepareStatement("DELETE FROM CustomerTable WHERE customer_id=?");
