@@ -1,19 +1,22 @@
+import com.squareup.moshi.Json;
+
 public class Customer {
-    private final int customer_id;
+    @Json(name = "customer_id")
+    private final long customerId;
     private String name;
 
     private String email;
     private int status;
 
-    public Customer(int customer_id, String name, String email, int status) {
-        this.customer_id = customer_id;
+    public Customer(long customerId, String name, String email, int status) {
+        this.customerId = customerId;
         this.name = name;
         this.email = email;
         this.status = status;
     }
 
-    public int getCustomer_id() {
-        return customer_id;
+    public long getCustomer_id() {
+        return customerId;
     }
 
     public String getName() {

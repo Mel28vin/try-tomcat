@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class CustomerUtils {
+public class ItemUtils {
     static Moshi moshi = new Moshi.Builder().build();
 
     public static String getAllCustomers() {
@@ -23,11 +23,11 @@ public class CustomerUtils {
              ResultSet rs = st.executeQuery()) {
 
             while (rs.next()) {
-                long customerId = rs.getInt("customer_id");
+                int customer_id = rs.getInt("customer_id");
                 String name = rs.getString("name");
                 String email = rs.getString("email");
                 int status = rs.getInt("status");
-                Customer temp = new Customer(customerId, name, email, status);
+                Customer temp = new Customer(customer_id, name, email, status);
                 allCustomers.add(temp);
             }
         } catch (SQLException | ClassNotFoundException e) {
@@ -42,19 +42,19 @@ public class CustomerUtils {
         return jsonAdapter.toJson(allCustomers);
     }
 
-    public static String getCustomer(long customerId) {
+    public static String getCustomer(int customer_id) {
         Customer temp = null;
         try (Connection con = DBConnectionManager.getConnection()) {
 
             PreparedStatement st = con.prepareStatement("Select * from CustomerTable where customer_id=?");
-            st.setLong(1, customerId);
+            st.setInt(1, customer_id);
             ResultSet rs = st.executeQuery();
 
             if (rs.next()) {
                 String name = rs.getString("name");
                 String email = rs.getString("email");
                 int status = rs.getInt("status");
-                temp = new Customer(customerId, name, email, status);
+                temp = new Customer(customer_id, name, email, status);
             }
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -88,7 +88,7 @@ public class CustomerUtils {
         return true;
     }
 
-    public static boolean updateCustomer(int customerId, String jsonString) {
+    public static boolean updateCustomer(int customer_id, String jsonString) {
         Type type = Types.newParameterizedType(Map.class, String.class, String.class);
         JsonAdapter<Map<String, String>> jsonAdapter = moshi.adapter(type);
 
@@ -101,7 +101,7 @@ public class CustomerUtils {
 
                 st.setString(2, customerData.getOrDefault("email", null));
 
-                st.setLong(3, customerId);
+                st.setInt(3, customer_id);
 
                 int rowsUpdated = st.executeUpdate();
 
@@ -116,11 +116,11 @@ public class CustomerUtils {
         }
     }
 
-    public static boolean removeCustomer(int customerId) {
+    public static boolean removeCustomer(int customer_id) {
 
         try (Connection con = DBConnectionManager.getConnection()) {
             PreparedStatement st = con.prepareStatement("DELETE FROM CustomerTable WHERE customer_id=?");
-            st.setLong(1, customerId);
+            st.setInt(1, customer_id);
             st.executeUpdate();
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
