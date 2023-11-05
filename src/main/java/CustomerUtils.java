@@ -122,22 +122,36 @@ public class CustomerUtils {
     }
 
     public static boolean addCustomer(String jsonString) {
-        Type type = Types.newParameterizedType(Map.class, String.class, String.class);
-        JsonAdapter<Map<String, String>> jsonAdapter = moshi.adapter(type);
+        JsonAdapter<Customer> jsonAdapter = moshi.adapter(Customer.class).indent("  ");
 
         try (Connection con = DBConnectionManager.getConnection()) {
             PreparedStatement st = con.prepareStatement("Insert into CustomerTable (name, email) VALUES (?, ?)");
-            Map<String, String> customerData = jsonAdapter.fromJson(jsonString);
-            assert customerData != null;
-            if (customerData.containsKey("name") && customerData.containsKey("email")) {
-                st.setString(1, customerData.get("name"));
-                st.setString(2, customerData.get("email"));
-                st.executeUpdate();
+            Customer currCustomer = jsonAdapter.fromJson(jsonString);
+            assert currCustomer != null;
+            st.setString(1, currCustomer.getName());
+            st.setString(2, currCustomer.getEmail());
+            st.executeUpdate();
+
+            // get customer_id
+            long customerId = 0;
+            st = con.prepareStatement("Select max(customer_id) from CustomerTable");
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                customerId = rs.getLong(1);
             } else {
-                return false;
+                throw new SQLException("Inserted Customer not found");
             }
 
-        } catch (SQLException | IOException | ClassNotFoundException e) {
+            st = con.prepareStatement("Insert into CustomerContactPersonTable (customer_id, name, email) VALUES (?, ?, ?)");
+            st.setLong(1, customerId);
+            List<CustomerContactPerson> arr = currCustomer.getContactPeople();
+            for (CustomerContactPerson contactPerson : arr) {
+                st.setString(2, contactPerson.getName());
+                st.setString(3, contactPerson.getEmail());
+                st.executeUpdate();
+            }
+
+        } catch (SQLException | IOException | ClassNotFoundException | ClassCastException e) {
             e.printStackTrace();
             return false;
         }

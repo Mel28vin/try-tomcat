@@ -21,6 +21,14 @@ public class Customer {
         this.contactPeople = contactPeople;
     }
 
+    public Customer(String name, String email, int status, List<CustomerContactPerson> contactPeople) {
+        this.customerId = 0;
+        this.name = name;
+        this.email = email;
+        this.status = status;
+        this.contactPeople = contactPeople;
+    }
+
     public long getCustomerId() {
         return customerId;
     }
