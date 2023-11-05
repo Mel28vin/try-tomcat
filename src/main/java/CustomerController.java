@@ -18,7 +18,8 @@ public class CustomerController extends HttpServlet {
         String pathInfo = request.getPathInfo();
 
         if (pathInfo == null || pathInfo.equals("/")) {
-            out.print(CustomerUtils.getAllCustomers());
+            String res = CustomerUtils.getAllCustomers();
+            out.print(String.format("{ \"code\": \"success\", \"message\": \"Customers data retrieved successfully\", \"data\": %s}", res));
         } else {
             String[] pathParts = pathInfo.split("/");
             if (pathParts.length == 2) {
@@ -27,20 +28,22 @@ public class CustomerController extends HttpServlet {
                 try {
                     customerId = Long.parseLong(idStr);
                 } catch (NumberFormatException e) {
-                    out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                    out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                     return;
                 }
-                out.print(CustomerUtils.getCustomer(customerId));
+                String res = CustomerUtils.getCustomer(customerId);
+                out.print(String.format("{ \"code\": \"success\", \"message\": \"Customer data retrieved successfully\", \"data\": %s}", res));
             } else if (pathParts.length == 3 && pathParts[2].equals("contact-people")) {
                 String idStr = pathParts[1];
                 long customerId = 0;
                 try {
                     customerId = Long.parseLong(idStr);
                 } catch (NumberFormatException e) {
-                    out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                    out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                     return;
                 }
-                out.print(CustomerUtils.getCustomerContactPeople(customerId));
+                String res = CustomerUtils.getCustomerContactPeople(customerId);
+                out.print(String.format("{ \"code\": \"success\", \"message\": \"Customer Contact People retrieved successfully\", \"data\": %s}", res));
             } else if (pathParts.length == 4 && pathParts[2].equals("contact-people")) {
                 String idStr = pathParts[1];
                 String contactIdStr = pathParts[3];
@@ -50,12 +53,13 @@ public class CustomerController extends HttpServlet {
                     customerId = Long.parseLong(idStr);
                     contactPersonId = Long.parseLong(contactIdStr);
                 } catch (NumberFormatException e) {
-                    out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                    out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                     return;
                 }
-                out.print(CustomerUtils.getContactPerson(customerId, contactPersonId));
+                String res = CustomerUtils.getContactPerson(customerId, contactPersonId);
+                out.print(String.format("{ \"code\": \"success\", \"message\": \"Customer Contact Person retrieved successfully\", \"data\": %s}", res));
             } else {
-                out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
             }
         }
         out.flush();
@@ -79,12 +83,12 @@ public class CustomerController extends HttpServlet {
             boolean isSuccess = CustomerUtils.addCustomer(jsonData);
 
             if (isSuccess)
-                out.write("{ \"status\": \"success\", \"message\": \"Customer data added successfully\" }");
+                out.write("{ \"code\": \"success\", \"message\": \"Customer data added successfully\" }");
             else
-                out.write("{ \"status\": \"error\", \"message\": \"Internal Error\" }");
+                out.write("{ \"code\": \"error\", \"message\": \"Internal Error\" }");
         } catch (Exception e) {
             e.printStackTrace();
-            out.write("{ \"status\": \"error\", \"message\": \"Error processing JSON body\" }");
+            out.write("{ \"code\": \"error\", \"message\": \"Error processing JSON body\" }");
         }
     }
 
@@ -107,7 +111,7 @@ public class CustomerController extends HttpServlet {
             boolean isSuccess = false;
 
             if (pathInfo == null || pathInfo.equals("/")) {
-                out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                 return;
             } else {
                 String[] pathParts = pathInfo.split("/");
@@ -116,26 +120,26 @@ public class CustomerController extends HttpServlet {
                 try {
                     customerId = Long.parseLong(idStr);
                 } catch (NumberFormatException e) {
-                    out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                    out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                     return;
                 }
                 if (pathParts.length == 2) {
                     isSuccess = CustomerUtils.updateCustomer(customerId, jsonData);
-                    out.write("{ \"status\": \"success\", \"message\": \"Customer Updated successfully\" }");
-                } else if (pathParts.length == 3 && pathParts[2].equals("status")) {
+                    out.write("{ \"code\": \"success\", \"message\": \"Customer Updated successfully\" }");
+                } else if (pathParts.length == 3 && pathParts[2].equals("code")) {
                     isSuccess = CustomerUtils.setStatus(customerId, 1);
-                    out.write("{ \"status\": \"success\", \"message\": \"Customer status set to Active successfully\" }");
+                    out.write("{ \"code\": \"success\", \"message\": \"Customer status set to Active successfully\" }");
                 } else {
-                    out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                    out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                     return;
                 }
             }
 
             if (!isSuccess)
-                out.write("{ \"status\": \"error\", \"message\": \"Error in DB\" }");
+                out.write("{ \"code\": \"error\", \"message\": \"Error in DB\" }");
         } catch (Exception e) {
             e.printStackTrace();
-            out.write("{ \"status\": \"error\", \"message\": \"Error processing JSON body\" }");
+            out.write("{ \"code\": \"error\", \"message\": \"Error processing JSON body\" }");
         }
     }
 
@@ -150,7 +154,7 @@ public class CustomerController extends HttpServlet {
         boolean isSuccess = false;
 
         if (pathInfo == null || pathInfo.equals("/")) {
-            out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+            out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
             return;
         } else {
             String[] pathParts = pathInfo.split("/");
@@ -159,22 +163,22 @@ public class CustomerController extends HttpServlet {
             try {
                 customerId = Integer.parseInt(idStr);
             } catch (NumberFormatException e) {
-                out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                 return;
             }
             if (pathParts.length == 2) {
                 isSuccess = CustomerUtils.removeCustomer(customerId);
-                out.write("{ \"status\": \"success\", \"message\": \"Customer Deleted successfully\" }");
-            } else if (pathParts.length == 3 && pathParts[2].equals("status")) {
+                out.write("{ \"code\": \"success\", \"message\": \"Customer Deleted successfully\" }");
+            } else if (pathParts.length == 3 && pathParts[2].equals("code")) {
                 isSuccess = CustomerUtils.setStatus(customerId, 0);
-                out.write("{ \"status\": \"success\", \"message\": \"Customer status set to Inactive successfully\" }");
+                out.write("{ \"code\": \"success\", \"message\": \"Customer status set to Inactive successfully\" }");
             } else {
-                out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                 return;
             }
         }
 
         if (!isSuccess)
-            out.write("{ \"status\": \"error\", \"message\": \"Internal Error\" }");
+            out.write("{ \"code\": \"error\", \"message\": \"Internal Error\" }");
     }
 }

@@ -27,12 +27,12 @@ public class ItemController extends HttpServlet {
                 try {
                     itemId = Long.parseLong(idStr);
                 } catch (NumberFormatException e) {
-                    out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                    out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                     return;
                 }
                 out.print(ItemUtils.getItem(itemId));
             } else {
-                out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
             }
         }
         out.flush();
@@ -56,12 +56,12 @@ public class ItemController extends HttpServlet {
             boolean isSuccess = ItemUtils.addItem(jsonData);
 
             if (isSuccess)
-                out.write("{ \"status\": \"success\", \"message\": \"Item data added successfully\" }");
+                out.write("{ \"code\": \"success\", \"message\": \"Item data added successfully\" }");
             else
-                out.write("{ \"status\": \"error\", \"message\": \"Internal Error\" }");
+                out.write("{ \"code\": \"error\", \"message\": \"Internal Error\" }");
         } catch (Exception e) {
             e.printStackTrace();
-            out.write("{ \"status\": \"error\", \"message\": \"Error processing JSON body\" }");
+            out.write("{ \"code\": \"error\", \"message\": \"Error processing JSON body\" }");
         }
         out.flush();
     }
@@ -85,7 +85,7 @@ public class ItemController extends HttpServlet {
             boolean isSuccess = false;
 
             if (pathInfo == null || pathInfo.equals("/")) {
-                out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                 return;
             } else {
                 String[] pathParts = pathInfo.split("/");
@@ -94,25 +94,25 @@ public class ItemController extends HttpServlet {
                 try {
                     itemId = Long.parseLong(idStr);
                 } catch (NumberFormatException e) {
-                    out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                    out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                     return;
                 }
                 if (pathParts.length == 2) {
                     isSuccess = ItemUtils.updateItem(itemId, jsonData);
-                    out.write("{ \"status\": \"success\", \"message\": \"Item Updated successfully\" }");
-                } else if (pathParts.length == 3 && pathParts[2].equals("status")) {
+                    out.write("{ \"code\": \"success\", \"message\": \"Item Updated successfully\" }");
+                } else if (pathParts.length == 3 && pathParts[2].equals("code")) {
                     isSuccess = ItemUtils.setStatus(itemId, 1);
-                    out.write("{ \"status\": \"success\", \"message\": \"Item status set to Active successfully\" }");
+                    out.write("{ \"code\": \"success\", \"message\": \"Item status set to Active successfully\" }");
                 } else {
-                    out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                    out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                 }
 
             }
             if (!isSuccess)
-                out.write("{ \"status\": \"error\", \"message\": \"Internal Error\" }");
+                out.write("{ \"code\": \"error\", \"message\": \"Internal Error\" }");
         } catch (Exception e) {
             e.printStackTrace();
-            out.write("{ \"status\": \"error\", \"message\": \"Error processing JSON body\" }");
+            out.write("{ \"code\": \"error\", \"message\": \"Error processing JSON body\" }");
         }
     }
 
@@ -127,7 +127,7 @@ public class ItemController extends HttpServlet {
         boolean isSuccess = false;
 
         if (pathInfo == null || pathInfo.equals("/")) {
-            out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+            out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
             return;
         } else {
             String[] pathParts = pathInfo.split("/");
@@ -136,22 +136,22 @@ public class ItemController extends HttpServlet {
             try {
                 itemId = Long.parseLong(idStr);
             } catch (NumberFormatException e) {
-                out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                 return;
             }
             if (pathParts.length == 2) {
                 isSuccess = ItemUtils.removeItem(itemId);
-                out.write("{ \"status\": \"success\", \"message\": \"Item Deleted successfully\" }");
-            } else if (pathParts.length == 3 && pathParts[2].equals("status")) {
+                out.write("{ \"code\": \"success\", \"message\": \"Item Deleted successfully\" }");
+            } else if (pathParts.length == 3 && pathParts[2].equals("code")) {
                 isSuccess = ItemUtils.setStatus(itemId, 0);
-                out.write("{ \"status\": \"success\", \"message\": \"Item status set to Inactive successfully\" }");
+                out.write("{ \"code\": \"success\", \"message\": \"Item status set to Inactive successfully\" }");
             } else {
-                out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
+                out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                 return;
             }
         }
 
         if (!isSuccess)
-            out.write("{ \"status\": \"error\", \"message\": \"Internal Error\" }");
+            out.write("{ \"code\": \"error\", \"message\": \"Internal Error\" }");
     }
 }
