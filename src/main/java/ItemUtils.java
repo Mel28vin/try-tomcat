@@ -15,20 +15,21 @@ import java.util.Map;
 public class ItemUtils {
     static Moshi moshi = new Moshi.Builder().build();
 
-    public static String getAllCustomers() {
-        List<Customer> allCustomers = new ArrayList<>();
+    public static String getAllItems() {
+        List<Item> allItems = new ArrayList<>();
 
         try (Connection con = DBConnectionManager.getConnection();
-             PreparedStatement st = con.prepareStatement("Select * from CustomerTable");
+             PreparedStatement st = con.prepareStatement("Select * from ItemTable");
              ResultSet rs = st.executeQuery()) {
 
             while (rs.next()) {
-                int customer_id = rs.getInt("customer_id");
+                long itemId = rs.getLong("item_id");
                 String name = rs.getString("name");
-                String email = rs.getString("email");
+                double rate = rs.getDouble("rate");
+                String description = rs.getString("description");
                 int status = rs.getInt("status");
-                Customer temp = new Customer(customer_id, name, email, status, null);
-                allCustomers.add(temp);
+                Item temp = new Item(itemId, name, status, rate, description);
+                allItems.add(temp);
             }
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -36,45 +37,49 @@ public class ItemUtils {
         }
 
         Type type = Types.
-                newParameterizedType(List.class, Customer.class);
-        JsonAdapter<List<Customer>> jsonAdapter = moshi.adapter(type);
+                newParameterizedType(List.class, Item.class);
+        JsonAdapter<List<Item>> jsonAdapter = moshi.adapter(type);
 
-        return jsonAdapter.toJson(allCustomers);
+        return jsonAdapter.toJson(allItems);
     }
 
-    public static String getCustomer(int customer_id) {
-        Customer temp = null;
+    public static String getItem(long itemId) {
+        Item temp = null;
         try (Connection con = DBConnectionManager.getConnection()) {
 
-            PreparedStatement st = con.prepareStatement("Select * from CustomerTable where customer_id=?");
-            st.setInt(1, customer_id);
+            PreparedStatement st = con.prepareStatement("Select * from ItemTable where item_id=?");
+            st.setLong(1, itemId);
             ResultSet rs = st.executeQuery();
 
             if (rs.next()) {
                 String name = rs.getString("name");
-                String email = rs.getString("email");
+                double rate = rs.getDouble("rate");
+                String description = rs.getString("description");
                 int status = rs.getInt("status");
-                temp = new Customer(customer_id, name, email, status, null);
+                temp = new Item(itemId, name, status, rate, description);
             }
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
             return null;
         }
-        JsonAdapter<Customer> jsonAdapter = moshi.adapter(Customer.class).indent("  ");
+        JsonAdapter<Item> jsonAdapter = moshi.adapter(Item.class).indent("  ");
         return jsonAdapter.toJson(temp);
     }
 
-    public static boolean addCustomer(String jsonString) {
+    public static boolean addItem(String jsonString) {
         Type type = Types.newParameterizedType(Map.class, String.class, String.class);
         JsonAdapter<Map<String, String>> jsonAdapter = moshi.adapter(type);
 
         try (Connection con = DBConnectionManager.getConnection()) {
-            PreparedStatement st = con.prepareStatement("Insert into CustomerTable (name, email) VALUES (?, ?)");
-            Map<String, String> customerData = jsonAdapter.fromJson(jsonString);
-            assert customerData != null;
-            if (customerData.containsKey("name") && customerData.containsKey("email")) {
-                st.setString(1, customerData.get("name"));
-                st.setString(2, customerData.get("email"));
+            PreparedStatement st = con.prepareStatement("Insert into ItemTable (name, rate, description) VALUES (?, ?, ?)");
+            Map<String, String> itemData = jsonAdapter.fromJson(jsonString);
+            assert itemData != null;
+            if (itemData.containsKey("name") &&
+                    itemData.containsKey("rate") &&
+                    itemData.containsKey("description")) {
+                st.setString(1, itemData.get("name"));
+                st.setString(2, itemData.get("rate"));
+                st.setString(3, itemData.get("description"));
                 st.executeUpdate();
             } else {
                 return false;
@@ -88,39 +93,38 @@ public class ItemUtils {
         return true;
     }
 
-    public static boolean updateCustomer(int customer_id, String jsonString) {
+    public static boolean updateItem(long itemId, String jsonString) {
         Type type = Types.newParameterizedType(Map.class, String.class, String.class);
         JsonAdapter<Map<String, String>> jsonAdapter = moshi.adapter(type);
 
         try (Connection con = DBConnectionManager.getConnection()) {
-            PreparedStatement st = con.prepareStatement("UPDATE CustomerTable SET name = COALESCE(?, name), email = COALESCE(?, email) WHERE customer_id = ?");
-            Map<String, String> customerData = jsonAdapter.fromJson(jsonString);
+            PreparedStatement st = con.prepareStatement("UPDATE ItemTable SET name = COALESCE(?, name), rate = COALESCE(?, rate), description = COALESCE(?, description) WHERE item_id = ?");
+            Map<String, String> itemData = jsonAdapter.fromJson(jsonString);
 
-            if (customerData != null) {
-                st.setString(1, customerData.getOrDefault("name", null));
-
-                st.setString(2, customerData.getOrDefault("email", null));
-
-                st.setInt(3, customer_id);
+            if (itemData != null) {
+                st.setString(1, itemData.getOrDefault("name", null));
+                st.setString(2, itemData.getOrDefault("rate", null));
+                st.setString(3, itemData.getOrDefault("description", null));
+                st.setLong(4, itemId);
 
                 int rowsUpdated = st.executeUpdate();
 
                 return rowsUpdated > 0;
             } else {
-                return false; // Invalid or missing data in the JSON
+                return false;
             }
 
         } catch (SQLException | IOException | ClassNotFoundException e) {
-            e.printStackTrace(); // Log or handle the exception as needed
-            return false;        // Update failed
+            e.printStackTrace();
+            return false;
         }
     }
 
-    public static boolean removeCustomer(int customer_id) {
+    public static boolean removeItem(long itemId) {
 
         try (Connection con = DBConnectionManager.getConnection()) {
-            PreparedStatement st = con.prepareStatement("DELETE FROM CustomerTable WHERE customer_id=?");
-            st.setInt(1, customer_id);
+            PreparedStatement st = con.prepareStatement("DELETE FROM ItemTable WHERE item_id=?");
+            st.setLong(1, itemId);
             st.executeUpdate();
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();

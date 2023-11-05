@@ -1,4 +1,5 @@
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -7,7 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 
-// @WebServlet("/api/v1/items/*")
+@WebServlet("/api/v1/items/*")
 public class ItemController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -17,19 +18,19 @@ public class ItemController extends HttpServlet {
         String pathInfo = request.getPathInfo();
 
         if (pathInfo == null || pathInfo.equals("/")) {
-            out.print(CustomerUtils.getAllCustomers());
+            out.print(ItemUtils.getAllItems());
         } else {
             String[] pathParts = pathInfo.split("/");
             if (pathParts.length == 2) {
                 String idStr = pathParts[1];
-                int customer_id = 0;
+                long itemId = 0;
                 try {
-                    customer_id = Integer.parseInt(idStr);
+                    itemId = Long.parseLong(idStr);
                 } catch (NumberFormatException e) {
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
                     return;
                 }
-                out.print(CustomerUtils.getCustomer(customer_id));
+                out.print(ItemUtils.getItem(itemId));
             } else {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid URL");
             }
@@ -54,7 +55,7 @@ public class ItemController extends HttpServlet {
 
 //            System.out.println("Received JSON data: " + jsonData);
 
-            boolean isSuccess = CustomerUtils.addCustomer(jsonData);
+            boolean isSuccess = ItemUtils.addItem(jsonData);
 
             if (isSuccess)
                 out.write("{ \"status\": \"success\", \"message\": \"JSON data received successfully\" }");
@@ -91,14 +92,14 @@ public class ItemController extends HttpServlet {
                 String[] pathParts = pathInfo.split("/");
                 if (pathParts.length == 2) {
                     String idStr = pathParts[1];
-                    int customer_id = 0;
+                    long itemId = 0;
                     try {
-                        customer_id = Integer.parseInt(idStr);
+                        itemId = Long.parseLong(idStr);
                     } catch (NumberFormatException e) {
                         out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
                         return;
                     }
-                    isSuccess = CustomerUtils.updateCustomer(customer_id, jsonData);
+                    isSuccess = ItemUtils.updateItem(itemId, jsonData);
                 } else {
                     out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
                     return;
@@ -106,7 +107,7 @@ public class ItemController extends HttpServlet {
             }
 
             if (isSuccess)
-                out.write("{ \"status\": \"success\", \"message\": \"Customer Updated successfully\" }");
+                out.write("{ \"status\": \"success\", \"message\": \"Item Updated successfully\" }");
             else
                 out.write("{ \"status\": \"error\", \"message\": \"Error in DB\" }");
         } catch (Exception e) {
@@ -132,14 +133,14 @@ public class ItemController extends HttpServlet {
             String[] pathParts = pathInfo.split("/");
             if (pathParts.length == 2) {
                 String idStr = pathParts[1];
-                int customer_id = 0;
+                long itemId = 0;
                 try {
-                    customer_id = Integer.parseInt(idStr);
+                    itemId = Long.parseLong(idStr);
                 } catch (NumberFormatException e) {
                     out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
                     return;
                 }
-                isSuccess = CustomerUtils.removeCustomer(customer_id);
+                isSuccess = ItemUtils.removeItem(itemId);
             } else {
                 out.write("{ \"status\": \"error\", \"message\": \"Invalid URL\" }");
                 return;
@@ -147,7 +148,7 @@ public class ItemController extends HttpServlet {
         }
 
         if (isSuccess)
-            out.write("{ \"status\": \"success\", \"message\": \"Customer Deleted successfully\" }");
+            out.write("{ \"status\": \"success\", \"message\": \"Item Deleted successfully\" }");
         else
             out.write("{ \"status\": \"error\", \"message\": \"Error in DB\" }");
     }

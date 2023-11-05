@@ -1,21 +1,24 @@
+import com.squareup.moshi.Json;
+
 public class Item {
-    private final int item_id;
+    @Json(name = "item_id")
+    private final long itemId;
 
     private String name;
-    private short status;
+    private int status;
     private double rate;
     private String description;
 
-    public Item(int item_id, String name, short status, double rate, String description) {
-        this.item_id = item_id;
+    public Item(long itemId, String name, int status, double rate, String description) {
+        this.itemId = itemId;
         this.name = name;
         this.status = status;
         this.rate = rate;
         this.description = description;
     }
 
-    public int getItem_id() {
-        return item_id;
+    public long getItemId() {
+        return itemId;
     }
 
     public String getName() {
@@ -26,11 +29,11 @@ public class Item {
         this.name = name;
     }
 
-    public short getStatus() {
+    public int getStatus() {
         return status;
     }
 
-    public void setStatus(short status) {
+    public void setStatus(int status) {
         this.status = status;
     }
 
