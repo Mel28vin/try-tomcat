@@ -18,7 +18,8 @@ public class ItemController extends HttpServlet {
         String pathInfo = request.getPathInfo();
 
         if (pathInfo == null || pathInfo.equals("/")) {
-            out.print(ItemUtils.getAllItems());
+            String res = ItemUtils.getAllItems();
+            out.print(String.format("{ \"code\": \"success\", \"message\": \"Items retrieved successfully\", \"data\": %s}", res));
         } else {
             String[] pathParts = pathInfo.split("/");
             if (pathParts.length == 2) {
@@ -30,7 +31,8 @@ public class ItemController extends HttpServlet {
                     out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                     return;
                 }
-                out.print(ItemUtils.getItem(itemId));
+                String res = ItemUtils.getItem(itemId);
+                out.print(String.format("{ \"code\": \"success\", \"message\": \"Item retrieved successfully\", \"data\": %s}", res));
             } else {
                 out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
             }
@@ -98,11 +100,14 @@ public class ItemController extends HttpServlet {
                     return;
                 }
                 if (pathParts.length == 2) {
-                    isSuccess = ItemUtils.updateItem(itemId, jsonData);
-                    out.write("{ \"code\": \"success\", \"message\": \"Item Updated successfully\" }");
+                    String res = ItemUtils.updateItem(itemId, jsonData);
+                    isSuccess = res != null;
+                    if (isSuccess)
+                        out.write(String.format("{ \"code\": \"success\", \"message\": \"Item Updated successfully\", \"data\": %s }", res));
                 } else if (pathParts.length == 3 && pathParts[2].equals("code")) {
                     isSuccess = ItemUtils.setStatus(itemId, 1);
-                    out.write("{ \"code\": \"success\", \"message\": \"Item status set to Active successfully\" }");
+                    if (isSuccess)
+                        out.write("{ \"code\": \"success\", \"message\": \"Item status set to Active successfully\" }");
                 } else {
                     out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                 }
@@ -141,10 +146,12 @@ public class ItemController extends HttpServlet {
             }
             if (pathParts.length == 2) {
                 isSuccess = ItemUtils.removeItem(itemId);
-                out.write("{ \"code\": \"success\", \"message\": \"Item Deleted successfully\" }");
+                if (isSuccess)
+                    out.write("{ \"code\": \"success\", \"message\": \"Item Deleted successfully\" }");
             } else if (pathParts.length == 3 && pathParts[2].equals("code")) {
                 isSuccess = ItemUtils.setStatus(itemId, 0);
-                out.write("{ \"code\": \"success\", \"message\": \"Item status set to Inactive successfully\" }");
+                if (isSuccess)
+                    out.write("{ \"code\": \"success\", \"message\": \"Item status set to Inactive successfully\" }");
             } else {
                 out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                 return;

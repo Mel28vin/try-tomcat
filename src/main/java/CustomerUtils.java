@@ -198,7 +198,7 @@ public class CustomerUtils {
 
     }
 
-    public static boolean updateCustomer(long customerId, String jsonString) {
+    public static String updateCustomer(long customerId, String jsonString) {
         JsonAdapter<Customer> jsonAdapter = moshi.adapter(Customer.class).indent("  ");
 
         try (Connection con = DBConnectionManager.getConnection()) {
@@ -212,20 +212,21 @@ public class CustomerUtils {
 
             st = con.prepareStatement("UPDATE CustomerContactPersonTable SET name = COALESCE(?, name), email = COALESCE(?, email) WHERE customer_id = ? AND contact_person_id = ?");
             List<CustomerContactPerson> arr = currCustomer.getContactPeople();
-            for (CustomerContactPerson contactPerson : arr) {
-                st.setString(1, contactPerson.getName());
-                st.setString(2, contactPerson.getEmail());
-                st.setLong(3, customerId);
-                st.setLong(4, contactPerson.getContactPersonId());
-                st.executeUpdate();
-            }
+            if (arr != null)
+                for (CustomerContactPerson contactPerson : arr) {
+                    st.setString(1, contactPerson.getName());
+                    st.setString(2, contactPerson.getEmail());
+                    st.setLong(3, customerId);
+                    st.setLong(4, contactPerson.getContactPersonId());
+                    st.executeUpdate();
+                }
 
         } catch (SQLException | IOException | ClassNotFoundException | ClassCastException e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
 
-        return true;
+        return getCustomer(customerId);
     }
 
     public static boolean setStatus(long customerId, int status) {

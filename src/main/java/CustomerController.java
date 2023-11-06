@@ -145,9 +145,10 @@ public class CustomerController extends HttpServlet {
                     return;
                 }
                 if (pathParts.length == 2) {
-                    isSuccess = CustomerUtils.updateCustomer(customerId, jsonData);
+                    String res = CustomerUtils.updateCustomer(customerId, jsonData);
+                    isSuccess = res != null;
                     if (isSuccess)
-                        out.write("{ \"code\": \"success\", \"message\": \"Customer Updated successfully\" }");
+                        out.write(String.format("{ \"code\": \"success\", \"message\": \"Customer Updated successfully\", \"data\": %s }", res));
                 } else if (pathParts.length == 3 && pathParts[2].equals("status")) {
                     isSuccess = CustomerUtils.setStatus(customerId, 1);
                     if (isSuccess)

@@ -105,7 +105,7 @@ public class ItemUtils {
         }
     }
 
-    public static boolean updateItem(long itemId, String jsonString) {
+    public static String updateItem(long itemId, String jsonString) {
         Type type = Types.newParameterizedType(Map.class, String.class, String.class);
         JsonAdapter<Map<String, String>> jsonAdapter = moshi.adapter(type);
 
@@ -121,15 +121,17 @@ public class ItemUtils {
 
                 int rowsUpdated = st.executeUpdate();
 
-                return rowsUpdated > 0;
+                if (rowsUpdated > 0) {
+                    return getItem(itemId);
+                }
             } else {
-                return false;
+                return null;
             }
 
         } catch (SQLException | IOException | ClassNotFoundException e) {
             e.printStackTrace();
-            return false;
         }
+        return null;
     }
 
     public static boolean removeItem(long itemId) {
