@@ -96,9 +96,9 @@ public class CustomerController extends HttpServlet {
                     return;
                 }
                 if (pathParts.length == 3 && pathParts[2].equals("contact-people")) {
+                    isSuccess = CustomerUtils.addContactPerson(customerId, jsonData);
                     if (isSuccess)
-                        isSuccess = CustomerUtils.addContactPerson(customerId, jsonData);
-                    out.write("{ \"code\": \"success\", \"message\": \"Customer Contact Person Added successfully\" }");
+                        out.write("{ \"code\": \"success\", \"message\": \"Customer Contact Person Added successfully\" }");
                 } else {
                     out.write("{ \"code\": \"error\", \"message\": \"Invalid URL\" }");
                     return;
